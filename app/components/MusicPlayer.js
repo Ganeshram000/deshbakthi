@@ -50,8 +50,8 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
     const build = () => {
       console.log('[YT] build() called');
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
-      playerRef.current = new window.YT.Player(containerRef.current, {
-        height: '200', width: '200',
+      playerRef.current = new window.YT.Player('yt-player-mount', {
+        height: '1', width: '1',
         videoId: 'dQw4w9WgXcQ',
         playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin },
         events: { onReady, onStateChange },
@@ -184,9 +184,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   return (
     <>
       {/* Hidden YT mount */}
-      <div className="absolute pointer-events-none" style={{ width: '1px', height: '1px', visibility: 'hidden', top: 0, left: 0, overflow: 'hidden' }}>
-        <div ref={containerRef} style={{ width: '200px', height: '200px' }} />
-      </div>
+      <div id="yt-player-mount" style={{ position: 'fixed', bottom: 0, left: 0, width: '1px', height: '1px', opacity: 0, pointerEvents: 'none', zIndex: -1 }} />
 
       {/* ── Player Bar ── */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 w-[min(480px,calc(100vw-24px))]">
