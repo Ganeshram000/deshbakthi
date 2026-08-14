@@ -48,7 +48,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
       playerRef.current = new window.YT.Player(containerRef.current, {
         height: '200', width: '200',
-        playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, mute: 1, enablejsapi: 1, origin: 'https://indiantruckmusic.codewale.in' },
+        playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin: window.location.origin },
         events: { onReady, onStateChange },
       });
     };
@@ -68,7 +68,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   function onReady(e) {
     e.target.mute();
     e.target.loadPlaylist({ listType: 'playlist', list: playlistId, index: 0 });
-    pollRef.current = setTimeout(() => pollForIds(e.target, 0), 1500);
+    pollRef.current = setTimeout(() => pollForIds(e.target, 0), 2000);
   }
 
   function pollForIds(player, attempt) {
