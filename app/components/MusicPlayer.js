@@ -29,6 +29,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   const containerRef = useRef(null);
   const timerRef     = useRef(null);
   const pollRef      = useRef(null);
+  const builtRef     = useRef(false);
 
   const [started,      setStarted]      = useState(false);
   const [playing,      setPlaying]      = useState(false);
@@ -51,12 +52,14 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
     const maxRetries = 5;
 
     const build = () => {
+      if (builtRef.current) return;
+      builtRef.current = true;
       console.log('[YT] build() called');
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
       try {
         playerRef.current = new window.YT.Player('yt-player-mount', {
           height: '1', width: '1',
-          playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin: window.location.origin },
+          playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin: 'https://indiantruckmusic.codewale.in' },
           events: { onReady, onStateChange },
         });
         console.log('[YT] player created:', playerRef.current);
@@ -114,8 +117,9 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
     // Fallback: try to build after a delay if API isn't ready
     const fallbackTimer = setTimeout(() => tryBuild(), 3000);
     
-    return () => { 
-      window.onYouTubeIframeAPIReady = null; 
+    return () => {
+      builtRef.current = false;
+      window.onYouTubeIframeAPIReady = null;
       clearTimeout(fallbackTimer);
     };
   }, [playlistId]);
@@ -125,9 +129,11 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   function onReady(e) {
     console.log('[YT] onReady fired');
     e.target.mute();
-    e.target.loadPlaylist({ listType: 'playlist', list: playlistId, index: 0 });
-    console.log('[YT] loadPlaylist called with:', playlistId);
-    pollRef.current = setTimeout(() => pollForIds(e.target, 0), 2000);
+    setTimeout(() => {
+      e.target.loadPlaylist({ listType: 'playlist', list: playlistId, index: 0 });
+      console.log('[YT] loadPlaylist called with:', playlistId);
+      pollRef.current = setTimeout(() => pollForIds(e.target, 0), 2000);
+    }, 1000);
   }
 
   function pollForIds(player, attempt) {
