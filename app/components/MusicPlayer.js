@@ -45,7 +45,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
 
   useEffect(() => {
     console.log('[YT] useEffect fired, building player...');
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://indiantruckmusic.codewale.in';
+    const origin = window.location.origin;
     console.log('[YT] origin:', origin);
     const build = () => {
       console.log('[YT] build() called');
