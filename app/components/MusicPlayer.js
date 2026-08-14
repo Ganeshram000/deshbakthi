@@ -117,31 +117,28 @@ export default function MusicPlayer({
         return;
       }
 
-      playerRef.current = new window.YT.Player(
-        'yt-player-mount',
-        {
-          width: '1',
-          height: '1',
+     playerRef.current = new window.YT.Player(
+  'yt-player-mount',
+  {
+    width: '200',
+    height: '200',
 
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            rel: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            enablejsapi: 1,
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      rel: 0,
+      playsinline: 1,
+      enablejsapi: 1,
+      origin: window.location.origin,
+    },
 
-            // IMPORTANT
-            origin: origin,
-          },
-
-          events: {
-            onReady: handleReady,
-            onStateChange: handleStateChange,
-            onError: handlePlayerError,
-          },
-        }
-      );
+    events: {
+      onReady: handleReady,
+      onStateChange: handleStateChange,
+      onError: handlePlayerError,
+    },
+  }
+);
     };
 
     // API already loaded
@@ -654,21 +651,19 @@ export default function MusicPlayer({
   return (
     <>
       {/* Hidden YouTube Player */}
-
-      <div
-        id="yt-player-mount"
-        style={{
-          position: 'fixed',
-          width: '1px',
-          height: '1px',
-          left: '-10px',
-          top: '-10px',
-          opacity: 0,
-          pointerEvents: 'none',
-          overflow: 'hidden',
-        }}
-      />
-
+<div
+  id="yt-player-mount"
+  style={{
+    position: 'fixed',
+    width: '200px',
+    height: '200px',
+    left: '-220px',
+    top: '0',
+    opacity: 0.01,
+    pointerEvents: 'none',
+    overflow: 'hidden',
+  }}
+/>
       {/* Player Bar */}
 
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 w-[min(480px,calc(100vw-24px))]">
