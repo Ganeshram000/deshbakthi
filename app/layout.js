@@ -79,6 +79,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="hi" className="h-full">
       <head>
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <link rel="icon" href="/favicon.ico" />
         <meta name="theme-color" content="#FF671F" />
         <meta name="mobile-web-app-capable" content="yes" />
