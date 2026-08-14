@@ -183,8 +183,8 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   return (
     <>
       {/* Hidden YT mount */}
-      <div className="absolute pointer-events-none" style={{ width: '200px', height: '200px', opacity: 0, top: '-9999px', left: '-9999px' }}>
-        <div ref={containerRef} />
+      <div className="absolute pointer-events-none" style={{ width: '1px', height: '1px', visibility: 'hidden', top: 0, left: 0, overflow: 'hidden' }}>
+        <div ref={containerRef} style={{ width: '200px', height: '200px' }} />
       </div>
 
       {/* ── Player Bar ── */}
