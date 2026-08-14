@@ -47,8 +47,8 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
     const build = () => {
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
       playerRef.current = new window.YT.Player(containerRef.current, {
-        height: '1', width: '1',
-        playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, mute: 1, origin: window.location.origin },
+        height: '200', width: '200',
+        playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, mute: 1, origin: 'https://indiantruckmusic.codewale.in' },
         events: { onReady, onStateChange },
       });
     };
@@ -180,7 +180,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   return (
     <>
       {/* Hidden YT mount */}
-      <div className="absolute w-px h-px overflow-hidden opacity-0 pointer-events-none">
+      <div className="absolute pointer-events-none" style={{ width: '200px', height: '200px', opacity: 0, top: '-9999px', left: '-9999px' }}>
         <div ref={containerRef} />
       </div>
 
