@@ -48,7 +48,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
       playerRef.current = new window.YT.Player(containerRef.current, {
         height: '200', width: '200',
-        playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, mute: 1, origin: 'https://indiantruckmusic.codewale.in/' },
+        playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, origin: 'https://indiantruckmusic.codewale.in' },
         events: { onReady, onStateChange },
       });
     };
@@ -67,37 +67,46 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
 
   function onReady(e) {
     e.target.setVolume(70);
-    e.target.loadPlaylist({ listType: 'playlist', list: playlistId, index: 0 });
-    pollRef.current = setTimeout(() => pollForIds(e.target, 0), 1200);
-    // Auto-unmute on first user interaction
-    const unmute = () => {
-      try {
-        e.target.unMute();
-        e.target.setVolume(70);
-        setMuted(false);
-      } catch (_) {}
-      document.removeEventListener('click', unmute);
-      document.removeEventListener('keydown', unmute);
-    };
-    document.addEventListener('click', unmute, { once: true });
-    document.addEventListener('keydown', unmute, { once: true });
+    e.target.cuePlaylist({ listType: 'playlist', list: playlistId, index: 0 });
+    fetchPlaylistFromNoembed();
   }
 
-  function pollForIds(player, attempt) {
+  async function fetchPlaylistFromNoembed() {
     try {
-      const ids = player.getPlaylist();
-      if (ids?.length > 0) {
-        setPlaylist(ids.map((id, i) => ({
-          id, index: i,
-          title: `Track ${i + 1}`, author: '',
-          thumb: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
-        })));
-        setTrackThumb(`https://img.youtube.com/vi/${ids[0]}/mqdefault.jpg`);
-        fetchTitlesInBatches(ids);
-        return;
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${playlistId}&format=json`);
+      const data = await res.json();
+      // fallback: build from known playlist using noembed per-video
+    } catch (_) {}
+    // Use noembed to get video list via RSS feed
+    fetchPlaylistViaRSS();
+  }
+
+  async function fetchPlaylistViaRSS() {
+    try {
+      const rss = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`);
+      const data = await rss.json();
+      if (data.items?.length > 0) {
+        const ids = data.items.map(item => {
+          const match = item.link?.match(/[?&]v=([^&]+)/);
+          return match ? match[1] : null;
+        }).filter(Boolean);
+        if (ids.length > 0) {
+          const tracks = ids.map((id, i) => ({
+            id, index: i,
+            title: data.items[i]?.title || `Track ${i + 1}`,
+            author: data.items[i]?.author || '',
+            thumb: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
+          }));
+          setPlaylist(tracks);
+          setTrackThumb(`https://img.youtube.com/vi/${ids[0]}/mqdefault.jpg`);
+          const raw = tracks[0].title;
+          const sep = raw.indexOf(' - ');
+          if (sep > 0) { setTrackArtist(raw.slice(0, sep).trim()); setTrackTitle(raw.slice(sep + 3).trim()); }
+          else { setTrackTitle(raw); }
+          playerRef.current?.cuePlaylist({ listType: 'playlist', list: playlistId, index: 0 });
+        }
       }
     } catch (_) {}
-    if (attempt < 30) pollRef.current = setTimeout(() => pollForIds(player, attempt + 1), 500);
   }
 
   async function fetchTitlesInBatches(ids) {
@@ -159,11 +168,12 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
 
   const togglePlay = () => {
     try {
-      const state = playerRef.current?.getPlayerState?.();
       if (playing) {
         playerRef.current?.pauseVideo();
       } else {
         setStarted(true);
+        playerRef.current?.unMute();
+        playerRef.current?.setVolume(volume);
         playerRef.current?.playVideo();
       }
     } catch (_) {}
