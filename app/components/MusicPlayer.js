@@ -82,11 +82,18 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   }
 
   function pollForIds(player, attempt) {
-    const ids = (() => { try { return player.getPlaylist(); } catch(err) { console.error('[YT] getPlaylist error:', err); return null; } })();
+    const ids = (() => { try { return player.getPlaylist(); } catch(err) { console.error('[YT] getPlaylist error in pollForIds:', err); return null; } })();
     const state = (() => { try { return player.getPlayerState(); } catch(_) { return 'error'; } })();
-    console.log(`[YT] poll attempt ${attempt} | state: ${state} | ids:`, ids);
+    console.log(`[YT] pollForIds attempt ${attempt} | Player State: ${state} | Playlist IDs:`, ids);
+
+    if (ids === null) {
+      console.error(`[YT] pollForIds: player.getPlaylist() returned null at attempt ${attempt}. This often means the player is not ready or playlist is not loaded.`);
+    } else if (ids.length === 0) {
+      console.warn(`[YT] pollForIds: player.getPlaylist() returned an empty array at attempt ${attempt}. Check if the playlist ID is valid and accessible.`);
+    }
+
     if (ids?.length > 0) {
-      console.log('[YT] playlist loaded! total tracks:', ids.length);
+      console.log('[YT] Playlist successfully loaded! Total tracks:', ids.length);
       setPlaylist(ids.map((id, i) => ({
         id, index: i,
         title: `Track ${i + 1}`, author: '',
