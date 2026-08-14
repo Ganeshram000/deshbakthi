@@ -56,8 +56,7 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
       try {
         playerRef.current = new window.YT.Player('yt-player-mount', {
           height: '1', width: '1',
-          videoId: 'dQw4w9WgXcQ',
-          playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1 },
+          playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin: window.location.origin },
           events: { onReady, onStateChange },
         });
         console.log('[YT] player created:', playerRef.current);
