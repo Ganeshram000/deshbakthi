@@ -47,28 +47,75 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
     console.log('[YT] useEffect fired, building player...');
     const origin = window.location.origin;
     console.log('[YT] origin:', origin);
+    let retries = 0;
+    const maxRetries = 5;
+
     const build = () => {
       console.log('[YT] build() called');
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
-      playerRef.current = new window.YT.Player('yt-player-mount', {
-        height: '1', width: '1',
-        videoId: 'dQw4w9WgXcQ',
-        playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1 },
-        events: { onReady, onStateChange },
-      });
-      console.log('[YT] player created:', playerRef.current);
+      try {
+        playerRef.current = new window.YT.Player('yt-player-mount', {
+          height: '1', width: '1',
+          videoId: 'dQw4w9WgXcQ',
+          playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1 },
+          events: { onReady, onStateChange },
+        });
+        console.log('[YT] player created:', playerRef.current);
+      } catch (err) {
+        console.error('[YT] Failed to create player:', err);
+      }
     };
+
+    const tryBuild = () => {
+      if (window.YT?.Player) {
+        console.log('[YT] YT already loaded');
+        build();
+        return true;
+      }
+      if (retries < maxRetries) {
+        retries++;
+        console.warn(`[YT] YT not ready yet, retrying... (attempt ${retries}/${maxRetries})`);
+        setTimeout(tryBuild, 500);
+        return false;
+      }
+      console.error('[YT] YT failed to load after all retries');
+      return false;
+    };
+
     if (window.YT?.Player) { console.log('[YT] YT already loaded'); build(); return; }
     if (!document.getElementById('yt-iframe-api')) {
       console.log('[YT] injecting iframe_api script');
       const tag = document.createElement('script');
       tag.id = 'yt-iframe-api';
       tag.src = 'https://www.youtube.com/iframe_api';
-      tag.onerror = () => console.error('[YT] Failed to load iframe_api script!');
+      tag.async = true;
+      tag.crossOrigin = 'anonymous';
+      tag.onerror = () => {
+        console.error('[YT] Failed to load iframe_api script from CDN!');
+        console.warn('[YT] Retrying script load...');
+        tag.remove();
+        setTimeout(() => {
+          if (!document.getElementById('yt-iframe-api')) {
+            const retryTag = document.createElement('script');
+            retryTag.id = 'yt-iframe-api';
+            retryTag.src = 'https://www.youtube.com/iframe_api';
+            retryTag.async = true;
+            retryTag.crossOrigin = 'anonymous';
+            document.head.appendChild(retryTag);
+          }
+        }, 1000);
+      };
       document.head.appendChild(tag);
     }
     window.onYouTubeIframeAPIReady = () => { console.log('[YT] onYouTubeIframeAPIReady fired'); build(); };
-    return () => { window.onYouTubeIframeAPIReady = null; };
+    
+    // Fallback: try to build after a delay if API isn't ready
+    const fallbackTimer = setTimeout(() => tryBuild(), 3000);
+    
+    return () => { 
+      window.onYouTubeIframeAPIReady = null; 
+      clearTimeout(fallbackTimer);
+    };
   }, [playlistId]);
 
   useEffect(() => () => { clearInterval(timerRef.current); clearTimeout(pollRef.current); }, []);
