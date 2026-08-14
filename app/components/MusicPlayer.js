@@ -44,22 +44,29 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   const [playlist,     setPlaylist]     = useState([]);
 
   useEffect(() => {
+    console.log('[YT] useEffect fired, building player...');
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://indiantruckmusic.codewale.in';
+    console.log('[YT] origin:', origin);
     const build = () => {
+      console.log('[YT] build() called');
       if (playerRef.current) { try { playerRef.current.destroy(); } catch (_) {} playerRef.current = null; }
       playerRef.current = new window.YT.Player(containerRef.current, {
         height: '200', width: '200',
-        playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin: window.location.origin },
+        playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, enablejsapi: 1, playsinline: 1, origin },
         events: { onReady, onStateChange },
       });
+      console.log('[YT] player created:', playerRef.current);
     };
-    if (window.YT?.Player) { build(); return; }
+    if (window.YT?.Player) { console.log('[YT] YT already loaded'); build(); return; }
     if (!document.getElementById('yt-iframe-api')) {
+      console.log('[YT] injecting iframe_api script');
       const tag = document.createElement('script');
       tag.id = 'yt-iframe-api';
       tag.src = 'https://www.youtube.com/iframe_api';
+      tag.onerror = () => console.error('[YT] Failed to load iframe_api script!');
       document.head.appendChild(tag);
     }
-    window.onYouTubeIframeAPIReady = build;
+    window.onYouTubeIframeAPIReady = () => { console.log('[YT] onYouTubeIframeAPIReady fired'); build(); };
     return () => { window.onYouTubeIframeAPIReady = null; };
   }, [playlistId]);
 
