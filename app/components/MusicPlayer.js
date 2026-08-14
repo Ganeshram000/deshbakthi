@@ -66,29 +66,33 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
   useEffect(() => () => { clearInterval(timerRef.current); clearTimeout(pollRef.current); }, []);
 
   function onReady(e) {
+    console.log('[YT] onReady fired');
     e.target.mute();
     e.target.loadPlaylist({ listType: 'playlist', list: playlistId, index: 0 });
+    console.log('[YT] loadPlaylist called with:', playlistId);
     pollRef.current = setTimeout(() => pollForIds(e.target, 0), 2000);
   }
 
   function pollForIds(player, attempt) {
-    try {
-      const ids = player.getPlaylist();
-      if (ids?.length > 0) {
-        setPlaylist(ids.map((id, i) => ({
-          id, index: i,
-          title: `Track ${i + 1}`, author: '',
-          thumb: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
-        })));
-        setTrackThumb(`https://img.youtube.com/vi/${ids[0]}/mqdefault.jpg`);
-        fetchTitlesInBatches(ids);
-        player.pauseVideo();
-        player.unMute();
-        player.setVolume(70);
-        return;
-      }
-    } catch (_) {}
+    const ids = (() => { try { return player.getPlaylist(); } catch(err) { console.error('[YT] getPlaylist error:', err); return null; } })();
+    const state = (() => { try { return player.getPlayerState(); } catch(_) { return 'error'; } })();
+    console.log(`[YT] poll attempt ${attempt} | state: ${state} | ids:`, ids);
+    if (ids?.length > 0) {
+      console.log('[YT] playlist loaded! total tracks:', ids.length);
+      setPlaylist(ids.map((id, i) => ({
+        id, index: i,
+        title: `Track ${i + 1}`, author: '',
+        thumb: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
+      })));
+      setTrackThumb(`https://img.youtube.com/vi/${ids[0]}/mqdefault.jpg`);
+      fetchTitlesInBatches(ids);
+      player.pauseVideo();
+      player.unMute();
+      player.setVolume(70);
+      return;
+    }
     if (attempt < 40) pollRef.current = setTimeout(() => pollForIds(player, attempt + 1), 500);
+    else console.error('[YT] playlist never loaded after 40 attempts. Playlist ID:', playlistId, '| Check: is playlist Public? Is embedding allowed?');
   }
 
   async function fetchTitlesInBatches(ids) {
