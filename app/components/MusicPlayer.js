@@ -89,7 +89,6 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
       tag.id = 'yt-iframe-api';
       tag.src = 'https://www.youtube.com/iframe_api';
       tag.async = true;
-      tag.crossOrigin = 'anonymous';
       tag.onerror = () => {
         console.error('[YT] Failed to load iframe_api script from CDN!');
         console.warn('[YT] Retrying script load...');
@@ -100,7 +99,6 @@ export default function MusicPlayer({ playlistId = PLAYLIST_ID }) {
             retryTag.id = 'yt-iframe-api';
             retryTag.src = 'https://www.youtube.com/iframe_api';
             retryTag.async = true;
-            retryTag.crossOrigin = 'anonymous';
             document.head.appendChild(retryTag);
           }
         }, 1000);

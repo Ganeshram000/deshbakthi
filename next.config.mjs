@@ -8,7 +8,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-inline' https://www.youtube.com https://*.ytimg.com https://www.youtube.nocookie.com; frame-src 'self' https://www.youtube.com https://www.youtube.nocookie.com; connect-src 'self' https://www.youtube.com https://*.google.com https://*.ytimg.com",
+            value: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://*.ytimg.com https://www.youtube.nocookie.com; frame-src 'self' https://www.youtube.com https://www.youtube.nocookie.com; connect-src 'self' https://www.youtube.com https://*.google.com https://*.ytimg.com; img-src 'self' data: https://*.ytimg.com https://img.youtube.com;",
           },
           {
             key: 'X-Frame-Options',
